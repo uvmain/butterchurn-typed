@@ -2,3 +2,4 @@ node_modules/
 /dist/
 .netlify
 test/visual/__image_snapshots__/*-snap.png
+test/visual/__image_snapshots__/__diff_output__/*

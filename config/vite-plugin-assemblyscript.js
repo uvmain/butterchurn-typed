@@ -1,12 +1,13 @@
 import buffer from 'node:buffer'
-import { createFilter } from '@rollup/pluginutils'
 import asc from 'assemblyscript/cli/asc'
+import { createFilter } from 'vite'
 
 function assemblyscriptPlugin(options = {}) {
   const filter = createFilter(options.include || /\.ts$/, options.exclude)
 
   return {
     name: 'assemblyscript',
+    enforce: 'pre',
 
     async transform(code, id) {
       if (!filter(id)) {
