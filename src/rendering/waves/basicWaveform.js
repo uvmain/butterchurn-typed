@@ -39,9 +39,9 @@ export default class BasicWaveform {
   createShader() {
     this.shaderProgram = this.gl.createProgram()
 
-    const vertShader = this.gl.createShader(this.gl.VERTEX_SHADER)
+    const vertexShader = this.gl.createShader(this.gl.VERTEX_SHADER)
     this.gl.shaderSource(
-      vertShader,
+      vertexShader,
       `
       #version 300 es
       in vec3 aPos;
@@ -51,7 +51,7 @@ export default class BasicWaveform {
       }
       `.trim(),
     )
-    this.gl.compileShader(vertShader)
+    this.gl.compileShader(vertexShader)
 
     const fragShader = this.gl.createShader(this.gl.FRAGMENT_SHADER)
     this.gl.shaderSource(
@@ -70,7 +70,7 @@ export default class BasicWaveform {
     )
     this.gl.compileShader(fragShader)
 
-    this.gl.attachShader(this.shaderProgram, vertShader)
+    this.gl.attachShader(this.shaderProgram, vertexShader)
     this.gl.attachShader(this.shaderProgram, fragShader)
     this.gl.linkProgram(this.shaderProgram)
 

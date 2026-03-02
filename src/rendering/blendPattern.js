@@ -3,16 +3,16 @@ import { getRNG } from '../utils/rngContext'
 export default class BlendPattern {
   constructor(opts) {
     this.rng = getRNG()
-    this.mesh_width = opts.mesh_width
-    this.mesh_height = opts.mesh_height
+    this.meshWidth = opts.meshWidth
+    this.meshHeight = opts.meshHeight
     this.aspectx = opts.aspectx
     this.aspecty = opts.aspecty
 
     this.vertInfoA = new Float32Array(
-      (this.mesh_width + 1) * (this.mesh_height + 1),
+      (this.meshWidth + 1) * (this.meshHeight + 1),
     )
     this.vertInfoC = new Float32Array(
-      (this.mesh_width + 1) * (this.mesh_height + 1),
+      (this.meshWidth + 1) * (this.meshHeight + 1),
     )
 
     this.createBlendPattern()
@@ -52,31 +52,31 @@ export default class BlendPattern {
   }
 
   updateGlobals(opts) {
-    const oldMeshWidth = this.mesh_width
-    const oldMeshHeight = this.mesh_height
+    const oldMeshWidth = this.meshWidth
+    const oldmeshHeight = this.meshHeight
 
-    this.mesh_width = opts.mesh_width
-    this.mesh_height = opts.mesh_height
+    this.meshWidth = opts.meshWidth
+    this.meshHeight = opts.meshHeight
     this.aspectx = opts.aspectx
     this.aspecty = opts.aspecty
 
     if (
-      this.mesh_width !== oldMeshWidth
-      || this.mesh_height !== oldMeshHeight
+      this.meshWidth !== oldMeshWidth
+      || this.meshHeight !== oldmeshHeight
     ) {
       this.vertInfoA = BlendPattern.resizeMatrixValues(
         this.vertInfoA,
         oldMeshWidth,
-        oldMeshHeight,
-        this.mesh_width,
-        this.mesh_height,
+        oldmeshHeight,
+        this.meshWidth,
+        this.meshHeight,
       )
       this.vertInfoC = BlendPattern.resizeMatrixValues(
         this.vertInfoC,
         oldMeshWidth,
-        oldMeshHeight,
-        this.mesh_width,
-        this.mesh_height,
+        oldmeshHeight,
+        this.meshWidth,
+        this.meshHeight,
       )
     }
   }
@@ -84,34 +84,34 @@ export default class BlendPattern {
   genPlasma(x0, x1, y0, y1, dt) {
     const midx = Math.floor((x0 + x1) / 2)
     const midy = Math.floor((y0 + y1) / 2)
-    let t00 = this.vertInfoC[y0 * (this.mesh_width + 1) + x0]
-    let t01 = this.vertInfoC[y0 * (this.mesh_width + 1) + x1]
-    let t10 = this.vertInfoC[y1 * (this.mesh_width + 1) + x0]
-    let t11 = this.vertInfoC[y1 * (this.mesh_width + 1) + x1]
+    let t00 = this.vertInfoC[y0 * (this.meshWidth + 1) + x0]
+    let t01 = this.vertInfoC[y0 * (this.meshWidth + 1) + x1]
+    let t10 = this.vertInfoC[y1 * (this.meshWidth + 1) + x0]
+    let t11 = this.vertInfoC[y1 * (this.meshWidth + 1) + x1]
 
     if (y1 - y0 >= 2) {
       if (x0 === 0) {
-        this.vertInfoC[midy * (this.mesh_width + 1) + x0]
+        this.vertInfoC[midy * (this.meshWidth + 1) + x0]
           = 0.5 * (t00 + t10) + (this.rng.random() * 2 - 1) * dt * this.aspecty
       }
-      this.vertInfoC[midy * (this.mesh_width + 1) + x1]
+      this.vertInfoC[midy * (this.meshWidth + 1) + x1]
         = 0.5 * (t01 + t11) + (this.rng.random() * 2 - 1) * dt * this.aspecty
     }
     if (x1 - x0 >= 2) {
       if (y0 === 0) {
-        this.vertInfoC[y0 * (this.mesh_width + 1) + midx]
+        this.vertInfoC[y0 * (this.meshWidth + 1) + midx]
           = 0.5 * (t00 + t01) + (this.rng.random() * 2 - 1) * dt * this.aspectx
       }
-      this.vertInfoC[y1 * (this.mesh_width + 1) + midx]
+      this.vertInfoC[y1 * (this.meshWidth + 1) + midx]
         = 0.5 * (t10 + t11) + (this.rng.random() * 2 - 1) * dt * this.aspectx
     }
 
     if (y1 - y0 >= 2 && x1 - x0 >= 2) {
-      t00 = this.vertInfoC[midy * (this.mesh_width + 1) + x0]
-      t01 = this.vertInfoC[midy * (this.mesh_width + 1) + x1]
-      t10 = this.vertInfoC[y0 * (this.mesh_width + 1) + midx]
-      t11 = this.vertInfoC[y1 * (this.mesh_width + 1) + midx]
-      this.vertInfoC[midy * (this.mesh_width + 1) + midx]
+      t00 = this.vertInfoC[midy * (this.meshWidth + 1) + x0]
+      t01 = this.vertInfoC[midy * (this.meshWidth + 1) + x1]
+      t10 = this.vertInfoC[y0 * (this.meshWidth + 1) + midx]
+      t11 = this.vertInfoC[y1 * (this.meshWidth + 1) + midx]
+      this.vertInfoC[midy * (this.meshWidth + 1) + midx]
         = 0.25 * (t10 + t11 + t00 + t01) + (this.rng.random() * 2 - 1) * dt
 
       this.genPlasma(x0, midx, y0, midy, dt * 0.5)
@@ -126,8 +126,8 @@ export default class BlendPattern {
     if (mixType === 0) {
       // not currently used
       let nVert = 0
-      for (let y = 0; y <= this.mesh_height; y++) {
-        for (let x = 0; x <= this.mesh_width; x++) {
+      for (let y = 0; y <= this.meshHeight; y++) {
+        for (let x = 0; x <= this.meshWidth; x++) {
           this.vertInfoA[nVert] = 1
           this.vertInfoC[nVert] = 0
           nVert += 1
@@ -142,10 +142,10 @@ export default class BlendPattern {
       const invBand = 1.0 / band
 
       let nVert = 0
-      for (let y = 0; y <= this.mesh_height; y++) {
-        const fy = (y / this.mesh_height) * this.aspecty
-        for (let x = 0; x <= this.mesh_width; x++) {
-          const fx = (x / this.mesh_width) * this.aspectx
+      for (let y = 0; y <= this.meshHeight; y++) {
+        const fy = (y / this.meshHeight) * this.aspecty
+        for (let x = 0; x <= this.meshWidth; x++) {
+          const fx = (x / this.meshWidth) * this.aspectx
 
           let t = (fx - 0.5) * vx + (fy - 0.5) * vy + 0.5
           t = (t - 0.5) / Math.sqrt(2) + 0.5
@@ -161,19 +161,19 @@ export default class BlendPattern {
       const invBand = 1.0 / band
 
       this.vertInfoC[0] = this.rng.random()
-      this.vertInfoC[this.mesh_width] = this.rng.random()
-      this.vertInfoC[this.mesh_height * (this.mesh_width + 1)] = this.rng.random()
+      this.vertInfoC[this.meshWidth] = this.rng.random()
+      this.vertInfoC[this.meshHeight * (this.meshWidth + 1)] = this.rng.random()
       this.vertInfoC[
-        this.mesh_height * (this.mesh_width + 1) + this.mesh_width
+        this.meshHeight * (this.meshWidth + 1) + this.meshWidth
       ] = this.rng.random()
-      this.genPlasma(0, this.mesh_width, 0, this.mesh_height, 0.25)
+      this.genPlasma(0, this.meshWidth, 0, this.meshHeight, 0.25)
 
       let minc = this.vertInfoC[0]
       let maxc = this.vertInfoC[0]
 
       let nVert = 0
-      for (let y = 0; y <= this.mesh_height; y++) {
-        for (let x = 0; x <= this.mesh_width; x++) {
+      for (let y = 0; y <= this.meshHeight; y++) {
+        for (let x = 0; x <= this.meshWidth; x++) {
           if (minc > this.vertInfoC[nVert]) {
             minc = this.vertInfoC[nVert]
           }
@@ -186,8 +186,8 @@ export default class BlendPattern {
 
       const mult = 1.0 / (maxc - minc)
       nVert = 0
-      for (let y = 0; y <= this.mesh_height; y++) {
-        for (let x = 0; x <= this.mesh_width; x++) {
+      for (let y = 0; y <= this.meshHeight; y++) {
+        for (let x = 0; x <= this.meshWidth; x++) {
           const t = (this.vertInfoC[nVert] - minc) * mult
           this.vertInfoA[nVert] = invBand * (1 + band)
           this.vertInfoC[nVert] = -invBand + invBand * t
@@ -201,10 +201,10 @@ export default class BlendPattern {
       const dir = Math.floor(this.rng.random() * 2) * 2 - 1
 
       let nVert = 0
-      for (let y = 0; y <= this.mesh_height; y++) {
-        const dy = (y / this.mesh_height - 0.5) * this.aspecty
-        for (let x = 0; x <= this.mesh_width; x++) {
-          const dx = (x / this.mesh_width - 0.5) * this.aspectx
+      for (let y = 0; y <= this.meshHeight; y++) {
+        const dy = (y / this.meshHeight - 0.5) * this.aspecty
+        for (let x = 0; x <= this.meshWidth; x++) {
+          const dx = (x / this.meshWidth - 0.5) * this.aspectx
           let t = Math.sqrt(dx * dx + dy * dy) * 1.41421
           if (dir === -1) {
             t = 1 - t

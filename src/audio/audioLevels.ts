@@ -27,22 +27,22 @@ export default class AudioLevels {
     const bassLow = clamp(
       Math.round(20 / bucketHz) - 1,
       0,
-      this.audio.numSamps - 1,
+      this.audio.numberOfSamples - 1,
     )
     const bassHigh = clamp(
       Math.round(320 / bucketHz) - 1,
       0,
-      this.audio.numSamps - 1,
+      this.audio.numberOfSamples - 1,
     )
     const midHigh = clamp(
       Math.round(2800 / bucketHz) - 1,
       0,
-      this.audio.numSamps - 1,
+      this.audio.numberOfSamples - 1,
     )
     const trebHigh = clamp(
       Math.round(11025 / bucketHz) - 1,
       0,
-      this.audio.numSamps - 1,
+      this.audio.numberOfSamples - 1,
     )
 
     this.starts = [bassLow, bassHigh, midHigh]

@@ -8,8 +8,8 @@ export default class CompShader {
     this.image = image
     this.rng = getRNG()
 
-    this.mesh_width = opts.mesh_width
-    this.mesh_height = opts.mesh_height
+    this.meshWidth = opts.meshWidth
+    this.meshHeight = opts.meshHeight
     this.texsizeX = opts.texsizeX
     this.texsizeY = opts.texsizeY
     this.aspectx = opts.aspectx
@@ -142,8 +142,8 @@ export default class CompShader {
   }
 
   updateGlobals(opts) {
-    this.mesh_width = opts.mesh_width
-    this.mesh_height = opts.mesh_height
+    this.meshWidth = opts.meshWidth
+    this.meshHeight = opts.meshHeight
     this.texsizeX = opts.texsizeX
     this.texsizeY = opts.texsizeY
     this.aspectx = opts.aspectx
@@ -155,10 +155,10 @@ export default class CompShader {
   }
 
   createShader(shaderText = '') {
-    let fragShaderText
-    let fragShaderHeaderText
+    let fragmentShaderText
+    let fragmentShaderHeaderText
     if (shaderText.length === 0) {
-      fragShaderText = `float orient_horiz = mod(echo_orientation, 2.0);
+      fragmentShaderText = `float orient_horiz = mod(echo_orientation, 2.0);
                         float orient_x = (orient_horiz != 0.0) ? -1.0 : 1.0;
                         float orient_y = (echo_orientation >= 2.0) ? -1.0 : 1.0;
                         vec2 uv_echo = ((uv - 0.5) *
@@ -181,24 +181,24 @@ export default class CompShader {
                         if(darken != 0) ret = ret*ret;
                         if(solarize != 0) ret = ret * (1.0 - ret) * 4.0;
                         if(invert != 0) ret = 1.0 - ret;`
-      fragShaderHeaderText = ''
+      fragmentShaderHeaderText = ''
     }
     else {
       const shaderParts = ShaderUtils.getShaderParts(shaderText)
-      fragShaderHeaderText = shaderParts[0]
-      fragShaderText = shaderParts[1]
+      fragmentShaderHeaderText = shaderParts[0]
+      fragmentShaderText = shaderParts[1]
     }
 
-    fragShaderText = fragShaderText.replace(/texture2D/g, 'texture')
-    fragShaderText = fragShaderText.replace(/texture3D/g, 'texture')
+    fragmentShaderText = fragmentShaderText.replace(/texture2D/g, 'texture')
+    fragmentShaderText = fragmentShaderText.replace(/texture3D/g, 'texture')
 
-    this.userTextures = ShaderUtils.getUserSamplers(fragShaderHeaderText)
+    this.userTextures = ShaderUtils.getUserSamplers(fragmentShaderHeaderText)
 
     this.shaderProgram = this.gl.createProgram()
 
-    const vertShader = this.gl.createShader(this.gl.VERTEX_SHADER)
+    const vertexShader = this.gl.createShader(this.gl.VERTEX_SHADER)
     this.gl.shaderSource(
-      vertShader,
+      vertexShader,
       `
       #version 300 es
       const vec2 halfmad = vec2(0.5);
@@ -213,7 +213,7 @@ export default class CompShader {
       }
       `.trim(),
     )
-    this.gl.compileShader(vertShader)
+    this.gl.compileShader(vertexShader)
 
     const fragShader = this.gl.createShader(this.gl.FRAGMENT_SHADER)
     this.gl.shaderSource(
@@ -347,7 +347,7 @@ export default class CompShader {
 
       float PI = ${Math.PI};
 
-      ${fragShaderHeaderText}
+      ${fragmentShaderHeaderText}
 
       void main(void) {
         vec3 ret;
@@ -359,7 +359,7 @@ export default class CompShader {
         float ang = atan(uv.x - 0.5, uv.y - 0.5);
         vec3 hue_shader = vColor.rgb;
 
-        ${fragShaderText}
+        ${fragmentShaderText}
 
         fragColor = vec4(ret, vColor.a);
       }
@@ -367,7 +367,7 @@ export default class CompShader {
     )
     this.gl.compileShader(fragShader)
 
-    this.gl.attachShader(this.shaderProgram, vertShader)
+    this.gl.attachShader(this.shaderProgram, vertexShader)
     this.gl.attachShader(this.shaderProgram, fragShader)
     this.gl.linkProgram(this.shaderProgram)
 
@@ -687,21 +687,21 @@ export default class CompShader {
 
         let alpha = 1
         if (blending) {
-          x *= this.mesh_width + 1
-          y *= this.mesh_height + 1
-          x = Math.clamp(x, 0, this.mesh_width - 1)
-          y = Math.clamp(y, 0, this.mesh_height - 1)
+          x *= this.meshWidth + 1
+          y *= this.meshHeight + 1
+          x = Math.clamp(x, 0, this.meshWidth - 1)
+          y = Math.clamp(y, 0, this.meshHeight - 1)
           const nx = Math.floor(x)
           const ny = Math.floor(y)
           const dx = x - nx
           const dy = y - ny
-          const alpha00 = warpColor[(ny * (this.mesh_width + 1) + nx) * 4 + 3]
+          const alpha00 = warpColor[(ny * (this.meshWidth + 1) + nx) * 4 + 3]
           const alpha01
-            = warpColor[(ny * (this.mesh_width + 1) + (nx + 1)) * 4 + 3]
+            = warpColor[(ny * (this.meshWidth + 1) + (nx + 1)) * 4 + 3]
           const alpha10
-            = warpColor[((ny + 1) * (this.mesh_width + 1) + nx) * 4 + 3]
+            = warpColor[((ny + 1) * (this.meshWidth + 1) + nx) * 4 + 3]
           const alpha11
-            = warpColor[((ny + 1) * (this.mesh_width + 1) + (nx + 1)) * 4 + 3]
+            = warpColor[((ny + 1) * (this.meshWidth + 1) + (nx + 1)) * 4 + 3]
           alpha
             = alpha00 * (1 - dx) * (1 - dy)
               + alpha01 * dx * (1 - dy)

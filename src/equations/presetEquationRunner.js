@@ -8,8 +8,8 @@ export default class PresetEquationRunner {
 
     this.texsizeX = opts.texsizeX
     this.texsizeY = opts.texsizeY
-    this.mesh_width = opts.mesh_width
-    this.mesh_height = opts.mesh_height
+    this.meshWidth = opts.meshWidth
+    this.meshHeight = opts.meshHeight
     this.aspectx = opts.aspectx
     this.aspecty = opts.aspecty
     this.invAspectx = 1.0 / this.aspectx
@@ -58,8 +58,8 @@ export default class PresetEquationRunner {
       mid_att: globalVars.mid_att,
       treb: globalVars.treb,
       treb_att: globalVars.treb_att,
-      meshx: this.mesh_width,
-      meshy: this.mesh_height,
+      meshx: this.meshWidth,
+      meshy: this.meshHeight,
       aspectx: this.invAspectx,
       aspecty: this.invAspecty,
       pixelsx: this.texsizeX,
@@ -216,8 +216,8 @@ export default class PresetEquationRunner {
   updateGlobals(opts) {
     this.texsizeX = opts.texsizeX
     this.texsizeY = opts.texsizeY
-    this.mesh_width = opts.mesh_width
-    this.mesh_height = opts.mesh_height
+    this.meshWidth = opts.meshWidth
+    this.meshHeight = opts.meshHeight
     this.aspectx = opts.aspectx
     this.aspecty = opts.aspecty
     this.invAspectx = 1.0 / this.aspectx

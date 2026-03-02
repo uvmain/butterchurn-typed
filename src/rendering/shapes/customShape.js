@@ -14,8 +14,8 @@ export default class CustomShape {
 
     this.texsizeX = opts.texsizeX
     this.texsizeY = opts.texsizeY
-    this.mesh_width = opts.mesh_width
-    this.mesh_height = opts.mesh_height
+    this.meshWidth = opts.meshWidth
+    this.meshHeight = opts.meshHeight
     this.aspectx = opts.aspectx
     this.aspecty = opts.aspecty
     this.invAspectx = 1.0 / this.aspectx
@@ -45,8 +45,8 @@ export default class CustomShape {
   updateGlobals(opts) {
     this.texsizeX = opts.texsizeX
     this.texsizeY = opts.texsizeY
-    this.mesh_width = opts.mesh_width
-    this.mesh_height = opts.mesh_height
+    this.meshWidth = opts.meshWidth
+    this.meshHeight = opts.meshHeight
     this.aspectx = opts.aspectx
     this.aspecty = opts.aspecty
     this.invAspectx = 1.0 / this.aspectx
@@ -56,9 +56,9 @@ export default class CustomShape {
   createShader() {
     this.shaderProgram = this.gl.createProgram()
 
-    const vertShader = this.gl.createShader(this.gl.VERTEX_SHADER)
+    const vertexShader = this.gl.createShader(this.gl.VERTEX_SHADER)
     this.gl.shaderSource(
-      vertShader,
+      vertexShader,
       `
       #version 300 es
       in vec3 aPos;
@@ -73,7 +73,7 @@ export default class CustomShape {
       }
       `.trim(),
     )
-    this.gl.compileShader(vertShader)
+    this.gl.compileShader(vertexShader)
 
     const fragShader = this.gl.createShader(this.gl.FRAGMENT_SHADER)
     this.gl.shaderSource(
@@ -99,7 +99,7 @@ export default class CustomShape {
     )
     this.gl.compileShader(fragShader)
 
-    this.gl.attachShader(this.shaderProgram, vertShader)
+    this.gl.attachShader(this.shaderProgram, vertexShader)
     this.gl.attachShader(this.shaderProgram, fragShader)
     this.gl.linkProgram(this.shaderProgram)
 
@@ -123,9 +123,9 @@ export default class CustomShape {
   createBorderShader() {
     this.borderShaderProgram = this.gl.createProgram()
 
-    const vertShader = this.gl.createShader(this.gl.VERTEX_SHADER)
+    const vertexShader = this.gl.createShader(this.gl.VERTEX_SHADER)
     this.gl.shaderSource(
-      vertShader,
+      vertexShader,
       `
       #version 300 es
       in vec3 aBorderPos;
@@ -136,7 +136,7 @@ export default class CustomShape {
       }
       `.trim(),
     )
-    this.gl.compileShader(vertShader)
+    this.gl.compileShader(vertexShader)
 
     const fragShader = this.gl.createShader(this.gl.FRAGMENT_SHADER)
     this.gl.shaderSource(
@@ -155,7 +155,7 @@ export default class CustomShape {
     )
     this.gl.compileShader(fragShader)
 
-    this.gl.attachShader(this.borderShaderProgram, vertShader)
+    this.gl.attachShader(this.borderShaderProgram, vertexShader)
     this.gl.attachShader(this.borderShaderProgram, fragShader)
     this.gl.linkProgram(this.borderShaderProgram)
 

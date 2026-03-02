@@ -38,8 +38,8 @@ export default class Renderer {
 
     this.width = opts.width || 1200
     this.height = opts.height || 900
-    this.mesh_width = opts.meshWidth || 48
-    this.mesh_height = opts.meshHeight || 36
+    this.meshWidth = opts.meshWidth || 48
+    this.meshHeight = opts.meshHeight || 36
     this.pixelRatio = opts.pixelRatio || window.devicePixelRatio || 1
     this.textureRatio = opts.textureRatio || 1
     this.outputFXAA = opts.outputFXAA || false
@@ -91,8 +91,8 @@ export default class Renderer {
       textureRatio: this.textureRatio,
       texsizeX: this.texsizeX,
       texsizeY: this.texsizeY,
-      mesh_width: this.mesh_width,
-      mesh_height: this.mesh_height,
+      meshWidth: this.meshWidth,
+      meshHeight: this.meshHeight,
       aspectx: this.aspectx,
       aspecty: this.aspecty,
     }
@@ -136,10 +136,10 @@ export default class Renderer {
     }
 
     this.warpUVs = new Float32Array(
-      (this.mesh_width + 1) * (this.mesh_height + 1) * 2,
+      (this.meshWidth + 1) * (this.meshHeight + 1) * 2,
     )
     this.warpColor = new Float32Array(
-      (this.mesh_width + 1) * (this.mesh_height + 1) * 4,
+      (this.meshWidth + 1) * (this.meshHeight + 1) * 4,
     )
 
     this.gl.clearColor(0, 0, 0, 1)
@@ -220,8 +220,8 @@ export default class Renderer {
       textureRatio: this.textureRatio,
       texsizeX: this.texsizeX,
       texsizeY: this.texsizeY,
-      mesh_width: this.mesh_width,
-      mesh_height: this.mesh_height,
+      meshWidth: this.meshWidth,
+      meshHeight: this.meshHeight,
       aspectx: this.aspectx,
       aspecty: this.aspecty,
     }
@@ -236,8 +236,8 @@ export default class Renderer {
       )
       if (this.preset.pixel_eqs_initialize_array) {
         this.preset.pixel_eqs_initialize_array(
-          this.mesh_width,
-          this.mesh_height,
+          this.meshWidth,
+          this.meshHeight,
         )
       }
     }
@@ -290,8 +290,8 @@ export default class Renderer {
 
     this.width = width
     this.height = height
-    this.mesh_width = opts.meshWidth || this.mesh_width
-    this.mesh_height = opts.meshHeight || this.mesh_height
+    this.meshWidth = opts.meshWidth || this.meshWidth
+    this.meshHeight = opts.meshHeight || this.meshHeight
     this.pixelRatio = opts.pixelRatio || this.pixelRatio
     this.textureRatio = opts.textureRatio || this.textureRatio
     this.texsizeX = width * this.pixelRatio * this.textureRatio
@@ -328,8 +328,8 @@ export default class Renderer {
   }
 
   setInternalMeshSize(width, height) {
-    this.mesh_width = width
-    this.mesh_height = height
+    this.meshWidth = width
+    this.meshHeight = height
 
     this.updateGlobals()
   }
@@ -344,8 +344,8 @@ export default class Renderer {
       textureRatio: this.textureRatio,
       texsizeX: this.texsizeX,
       texsizeY: this.texsizeY,
-      mesh_width: this.mesh_width,
-      mesh_height: this.mesh_height,
+      meshWidth: this.meshWidth,
+      meshHeight: this.meshHeight,
       aspectx: this.aspectx,
       aspecty: this.aspecty,
     }
@@ -372,14 +372,14 @@ export default class Renderer {
     this.blendPattern.updateGlobals(params)
 
     this.warpUVs = new Float32Array(
-      (this.mesh_width + 1) * (this.mesh_height + 1) * 2,
+      (this.meshWidth + 1) * (this.meshHeight + 1) * 2,
     )
     this.warpColor = new Float32Array(
-      (this.mesh_width + 1) * (this.mesh_height + 1) * 4,
+      (this.meshWidth + 1) * (this.meshHeight + 1) * 4,
     )
 
     if (this.preset.pixel_eqs_initialize_array) {
-      this.preset.pixel_eqs_initialize_array(this.mesh_width, this.mesh_height)
+      this.preset.pixel_eqs_initialize_array(this.meshWidth, this.meshHeight)
     }
   }
 
@@ -424,8 +424,8 @@ export default class Renderer {
   }
 
   runPixelEquations(presetEquationRunner, mdVSFrame, globalVars, blending) {
-    const gridX = this.mesh_width
-    const gridZ = this.mesh_height
+    const gridX = this.meshWidth
+    const gridZ = this.meshHeight
 
     const gridX1 = gridX + 1
     const gridZ1 = gridZ + 1
@@ -615,8 +615,8 @@ export default class Renderer {
 
       presetEquationRunner.preset.pixel_eqs_wasm(
         presetEquationRunner.runVertEQs,
-        this.mesh_width,
-        this.mesh_height,
+        this.meshWidth,
+        this.meshHeight,
         this.time,
         mdVSFrame.warpanimspeed,
         mdVSFrame.warpscale,
@@ -858,8 +858,8 @@ export default class Renderer {
       mid_att: this.audioLevels.mid_att,
       treb: this.audioLevels.treb,
       treb_att: this.audioLevels.treb_att,
-      meshx: this.mesh_width,
-      meshy: this.mesh_height,
+      meshx: this.meshWidth,
+      meshy: this.meshHeight,
       aspectx: this.invAspectx,
       aspecty: this.invAspecty,
       pixelsx: this.texsizeX,

@@ -1,7 +1,29 @@
 import ShaderUtils from '../shaders/shaderUtils'
 
+interface MotionVectorsOptions {
+  texsizeX: number
+  texsizeY: number
+  meshWidth: number
+  meshHeight: number
+}
+
 export default class MotionVectors {
-  constructor(gl, opts) {
+  gl: WebGLRenderingContext
+  maxX: number
+  maxY: number
+  positions: Float32Array
+  texsizeX: number
+  texsizeY: number
+  meshWidth: number
+  meshHeight: number
+  positionVertexBuf: WebGLBuffer
+  floatPrecision: string
+  shaderProgram!: WebGLProgram
+  aPosLoc!: number
+  colorLoc!: WebGLUniformLocation
+  numVecVerts!: number
+  color!: [number, number, number, number]
+  constructor(gl: WebGLRenderingContext, opts: MotionVectorsOptions) {
     this.gl = gl
 
     this.maxX = 64
@@ -10,8 +32,8 @@ export default class MotionVectors {
 
     this.texsizeX = opts.texsizeX
     this.texsizeY = opts.texsizeY
-    this.mesh_width = opts.mesh_width
-    this.mesh_height = opts.mesh_height
+    this.meshWidth = opts.meshWidth
+    this.meshHeight = opts.meshHeight
 
     this.positionVertexBuf = this.gl.createBuffer()
 
@@ -22,16 +44,19 @@ export default class MotionVectors {
   updateGlobals(opts) {
     this.texsizeX = opts.texsizeX
     this.texsizeY = opts.texsizeY
-    this.mesh_width = opts.mesh_width
-    this.mesh_height = opts.mesh_height
+    this.meshWidth = opts.meshWidth
+    this.meshHeight = opts.meshHeight
   }
 
   createShader() {
     this.shaderProgram = this.gl.createProgram()
 
-    const vertShader = this.gl.createShader(this.gl.VERTEX_SHADER)
+    const vertexShader = this.gl.createShader(this.gl.VERTEX_SHADER)
+    if (!vertexShader) {
+      throw new Error('Failed to create vertex shader')
+    }
     this.gl.shaderSource(
-      vertShader,
+      vertexShader,
       `
       #version 300 es
       in vec3 aPos;
@@ -40,9 +65,12 @@ export default class MotionVectors {
       }
       `.trim(),
     )
-    this.gl.compileShader(vertShader)
+    this.gl.compileShader(vertexShader)
 
     const fragShader = this.gl.createShader(this.gl.FRAGMENT_SHADER)
+    if (!fragShader) {
+      throw new Error('Failed to create fragment shader')
+    }
     this.gl.shaderSource(
       fragShader,
       `
@@ -59,26 +87,30 @@ export default class MotionVectors {
     )
     this.gl.compileShader(fragShader)
 
-    this.gl.attachShader(this.shaderProgram, vertShader)
+    this.gl.attachShader(this.shaderProgram, vertexShader)
     this.gl.attachShader(this.shaderProgram, fragShader)
     this.gl.linkProgram(this.shaderProgram)
 
     this.aPosLoc = this.gl.getAttribLocation(this.shaderProgram, 'aPos')
 
-    this.colorLoc = this.gl.getUniformLocation(this.shaderProgram, 'u_color')
+    const uniformLocation = this.gl.getUniformLocation(this.shaderProgram, 'u_color')
+    if (!uniformLocation) {
+      throw new Error('Failed to get uniform location for u_color')
+    }
+    this.colorLoc = uniformLocation
   }
 
-  getMotionDir(warpUVs, fx, fy) {
-    const y0 = Math.floor(fy * this.mesh_height)
-    const dy = fy * this.mesh_height - y0
+  getMotionDir(warpUVs: Float32Array, fx: number, fy: number): [number, number] {
+    const y0 = Math.floor(fy * this.meshHeight)
+    const dy = fy * this.meshHeight - y0
 
-    const x0 = Math.floor(fx * this.mesh_width)
-    const dx = fx * this.mesh_width - x0
+    const x0 = Math.floor(fx * this.meshWidth)
+    const dx = fx * this.meshWidth - x0
 
     const x1 = x0 + 1
     const y1 = y0 + 1
 
-    const gridX1 = this.mesh_width + 1
+    const gridX1 = this.meshWidth + 1
 
     let fx2
     let fy2
@@ -94,7 +126,7 @@ export default class MotionVectors {
     return [fx2, 1.0 - fy2]
   }
 
-  generateMotionVectors(mdVSFrame, warpUVs) {
+  generateMotionVectors(mdVSFrame: any, warpUVs: Float32Array): boolean {
     const mvOn = mdVSFrame.bmotionvectorson
     const mvA = mvOn === 0 ? 0 : mdVSFrame.mv_a
     let nX = Math.floor(mdVSFrame.mv_x)
@@ -184,7 +216,7 @@ export default class MotionVectors {
     return false
   }
 
-  drawMotionVectors(mdVSFrame, warpUVs) {
+  drawMotionVectors(mdVSFrame: any, warpUVs: Float32Array) {
     if (this.generateMotionVectors(mdVSFrame, warpUVs)) {
       this.gl.useProgram(this.shaderProgram)
 

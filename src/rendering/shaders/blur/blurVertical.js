@@ -25,9 +25,9 @@ export default class BlurVertical {
   createShader() {
     this.shaderProgram = this.gl.createProgram()
 
-    const vertShader = this.gl.createShader(this.gl.VERTEX_SHADER)
+    const vertexShader = this.gl.createShader(this.gl.VERTEX_SHADER)
     this.gl.shaderSource(
-      vertShader,
+      vertexShader,
       `
       #version 300 es
       const vec2 halfmad = vec2(0.5);
@@ -39,7 +39,7 @@ export default class BlurVertical {
       }
       `.trim(),
     )
-    this.gl.compileShader(vertShader)
+    this.gl.compileShader(vertexShader)
 
     const fragShader = this.gl.createShader(this.gl.FRAGMENT_SHADER)
     this.gl.shaderSource(
@@ -85,7 +85,7 @@ export default class BlurVertical {
     )
     this.gl.compileShader(fragShader)
 
-    this.gl.attachShader(this.shaderProgram, vertShader)
+    this.gl.attachShader(this.shaderProgram, vertexShader)
     this.gl.attachShader(this.shaderProgram, fragShader)
     this.gl.linkProgram(this.shaderProgram)
 

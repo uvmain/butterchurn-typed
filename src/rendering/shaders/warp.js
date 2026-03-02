@@ -10,8 +10,8 @@ export default class WarpShader {
 
     this.texsizeX = opts.texsizeX
     this.texsizeY = opts.texsizeY
-    this.mesh_width = opts.mesh_width
-    this.mesh_height = opts.mesh_height
+    this.meshWidth = opts.meshWidth
+    this.meshHeight = opts.meshHeight
     this.aspectx = opts.aspectx
     this.aspecty = opts.aspecty
     this.invAspectx = 1.0 / this.aspectx
@@ -103,8 +103,8 @@ export default class WarpShader {
     const widthHalf = width / 2
     const heightHalf = height / 2
 
-    const gridX = this.mesh_width
-    const gridY = this.mesh_height
+    const gridX = this.meshWidth
+    const gridY = this.meshHeight
 
     const gridX1 = gridX + 1
     const gridY1 = gridY + 1
@@ -141,8 +141,8 @@ export default class WarpShader {
   updateGlobals(opts) {
     this.texsizeX = opts.texsizeX
     this.texsizeY = opts.texsizeY
-    this.mesh_width = opts.mesh_width
-    this.mesh_height = opts.mesh_height
+    this.meshWidth = opts.meshWidth
+    this.meshHeight = opts.meshHeight
     this.aspectx = opts.aspectx
     this.aspecty = opts.aspecty
     this.invAspectx = 1.0 / this.aspectx
@@ -152,28 +152,28 @@ export default class WarpShader {
   }
 
   createShader(shaderText = '') {
-    let fragShaderText
-    let fragShaderHeaderText
+    let fragmentShaderText
+    let fragmentShaderHeaderText
     if (shaderText.length === 0) {
-      fragShaderText = 'ret = texture(sampler_main, uv).rgb * decay;'
-      fragShaderHeaderText = ''
+      fragmentShaderText = 'ret = texture(sampler_main, uv).rgb * decay;'
+      fragmentShaderHeaderText = ''
     }
     else {
       const shaderParts = ShaderUtils.getShaderParts(shaderText)
-      fragShaderHeaderText = shaderParts[0]
-      fragShaderText = shaderParts[1]
+      fragmentShaderHeaderText = shaderParts[0]
+      fragmentShaderText = shaderParts[1]
     }
 
-    fragShaderText = fragShaderText.replace(/texture2D/g, 'texture')
-    fragShaderText = fragShaderText.replace(/texture3D/g, 'texture')
+    fragmentShaderText = fragmentShaderText.replace(/texture2D/g, 'texture')
+    fragmentShaderText = fragmentShaderText.replace(/texture3D/g, 'texture')
 
-    this.userTextures = ShaderUtils.getUserSamplers(fragShaderHeaderText)
+    this.userTextures = ShaderUtils.getUserSamplers(fragmentShaderHeaderText)
 
     this.shaderProgram = this.gl.createProgram()
 
-    const vertShader = this.gl.createShader(this.gl.VERTEX_SHADER)
+    const vertexShader = this.gl.createShader(this.gl.VERTEX_SHADER)
     this.gl.shaderSource(
-      vertShader,
+      vertexShader,
       `
       #version 300 es
       precision ${this.floatPrecision} float;
@@ -192,7 +192,7 @@ export default class WarpShader {
       }
       `.trim(),
     )
-    this.gl.compileShader(vertShader)
+    this.gl.compileShader(vertexShader)
 
     const fragShader = this.gl.createShader(this.gl.FRAGMENT_SHADER)
     this.gl.shaderSource(
@@ -313,14 +313,14 @@ export default class WarpShader {
 
       float PI = ${Math.PI};
 
-      ${fragShaderHeaderText}
+      ${fragmentShaderHeaderText}
 
       void main(void) {
         vec3 ret;
         float rad = length(uv_orig - 0.5);
         float ang = atan(uv_orig.x - 0.5, uv_orig.y - 0.5);
 
-        ${fragShaderText}
+        ${fragmentShaderText}
 
         fragColor = vec4(ret, 1.0) * vColor;
       }
@@ -328,7 +328,7 @@ export default class WarpShader {
     )
     this.gl.compileShader(fragShader)
 
-    this.gl.attachShader(this.shaderProgram, vertShader)
+    this.gl.attachShader(this.shaderProgram, vertexShader)
     this.gl.attachShader(this.shaderProgram, fragShader)
     this.gl.linkProgram(this.shaderProgram)
 

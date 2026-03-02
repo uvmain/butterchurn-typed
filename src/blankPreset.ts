@@ -1,4 +1,25 @@
-const pmap = {
+interface PMap {
+  baseVals: Record<string, number>
+  init_eqs: () => Record<string, any>
+  frame_eqs: (m: Record<string, any>) => Record<string, any>
+  pixel_eqs: (m: Record<string, any>) => Record<string, any>
+  waves: Array<{
+    baseVals: Record<string, number>
+    init_eqs: (m: Record<string, any>) => Record<string, any>
+    frame_eqs: (m: Record<string, any>) => Record<string, any>
+    point_eqs: string
+  }>
+  shapes: Array<{
+    baseVals: Record<string, number>
+    init_eqs: (m: Record<string, any>) => Record<string, any>
+    frame_eqs: (m: Record<string, any>) => Record<string, any>
+    point_eqs?: string
+  }>
+  warp: string
+  comp: string
+}
+
+const pmap: PMap = {
   baseVals: {
     gammaadj: 1.25,
     wave_g: 0.5,
@@ -317,10 +338,8 @@ const pmap = {
       },
     },
   ],
-  warp:
-      'shader_body {\nret = texture2D(sampler_main, uv).rgb;\nret -= 0.004;\n}\n',
-  comp:
-      'shader_body {\nret = texture2D(sampler_main, uv).rgb;\nret *= hue_shader;\n}\n',
+  warp: 'shader_body {\nret = texture2D(sampler_main, uv).rgb;\nret -= 0.004;\n}\n',
+  comp: 'shader_body {\nret = texture2D(sampler_main, uv).rgb;\nret *= hue_shader;\n}\n',
 }
 
 export default pmap

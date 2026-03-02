@@ -44,9 +44,9 @@ export default class OutputShader {
   createFXAAShader() {
     this.shaderProgram = this.gl.createProgram()
 
-    const vertShader = this.gl.createShader(this.gl.VERTEX_SHADER)
+    const vertexShader = this.gl.createShader(this.gl.VERTEX_SHADER)
     this.gl.shaderSource(
-      vertShader,
+      vertexShader,
       `#version 300 es
        const vec2 halfmad = vec2(0.5);
        in vec2 aPos;
@@ -66,7 +66,7 @@ export default class OutputShader {
          v_rgbSE = v_rgbM + (vec2(1.0, 1.0) * texsize.zx);
        }`,
     )
-    this.gl.compileShader(vertShader)
+    this.gl.compileShader(vertexShader)
 
     const fragShader = this.gl.createShader(this.gl.FRAGMENT_SHADER)
     this.gl.shaderSource(
@@ -141,7 +141,7 @@ export default class OutputShader {
     )
     this.gl.compileShader(fragShader)
 
-    this.gl.attachShader(this.shaderProgram, vertShader)
+    this.gl.attachShader(this.shaderProgram, vertexShader)
     this.gl.attachShader(this.shaderProgram, fragShader)
     this.gl.linkProgram(this.shaderProgram)
 
@@ -159,9 +159,9 @@ export default class OutputShader {
   createShader() {
     this.shaderProgram = this.gl.createProgram()
 
-    const vertShader = this.gl.createShader(this.gl.VERTEX_SHADER)
+    const vertexShader = this.gl.createShader(this.gl.VERTEX_SHADER)
     this.gl.shaderSource(
-      vertShader,
+      vertexShader,
       `#version 300 es
        const vec2 halfmad = vec2(0.5);
        in vec2 aPos;
@@ -171,7 +171,7 @@ export default class OutputShader {
          uv = aPos * halfmad + halfmad;
        }`,
     )
-    this.gl.compileShader(vertShader)
+    this.gl.compileShader(vertexShader)
 
     const fragShader = this.gl.createShader(this.gl.FRAGMENT_SHADER)
     this.gl.shaderSource(
@@ -191,7 +191,7 @@ export default class OutputShader {
     )
     this.gl.compileShader(fragShader)
 
-    this.gl.attachShader(this.shaderProgram, vertShader)
+    this.gl.attachShader(this.shaderProgram, vertexShader)
     this.gl.attachShader(this.shaderProgram, fragShader)
     this.gl.linkProgram(this.shaderProgram)
 

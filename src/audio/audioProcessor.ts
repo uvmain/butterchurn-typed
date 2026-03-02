@@ -1,7 +1,7 @@
 import FFT from './fft'
 
 export default class AudioProcessor {
-  numSamps: number
+  numberOfSamples: number
   fftSize: number
   fft: any
   audioContext?: AudioContext
@@ -25,8 +25,8 @@ export default class AudioProcessor {
   freqArrayR: any
 
   constructor(context: AudioContext | null = null) {
-    this.numSamps = 512
-    this.fftSize = this.numSamps * 2
+    this.numberOfSamples = 512
+    this.fftSize = this.numberOfSamples * 2
 
     this.fft = new FFT(this.fftSize, 512, true)
 
@@ -71,9 +71,9 @@ export default class AudioProcessor {
     this.tempTimeArrayL = new Int8Array(this.fftSize)
     this.tempTimeArrayR = new Int8Array(this.fftSize)
 
-    // Undersampled from this.fftSize to this.numSamps
-    this.timeArrayL = new Int8Array(this.numSamps)
-    this.timeArrayR = new Int8Array(this.numSamps)
+    // Undersampled from this.fftSize to this.numberOfSamples
+    this.timeArrayL = new Int8Array(this.numberOfSamples)
+    this.timeArrayR = new Int8Array(this.numberOfSamples)
   }
 
   sampleAudio() {

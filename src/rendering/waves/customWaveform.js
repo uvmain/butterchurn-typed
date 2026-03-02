@@ -19,8 +19,8 @@ export default class CustomWaveform {
 
     this.texsizeX = opts.texsizeX
     this.texsizeY = opts.texsizeY
-    this.mesh_width = opts.mesh_width
-    this.mesh_height = opts.mesh_height
+    this.meshWidth = opts.meshWidth
+    this.meshHeight = opts.meshHeight
     this.aspectx = opts.aspectx
     this.aspecty = opts.aspecty
     this.invAspectx = 1.0 / this.aspectx
@@ -36,8 +36,8 @@ export default class CustomWaveform {
   updateGlobals(opts) {
     this.texsizeX = opts.texsizeX
     this.texsizeY = opts.texsizeY
-    this.mesh_width = opts.mesh_width
-    this.mesh_height = opts.mesh_height
+    this.meshWidth = opts.meshWidth
+    this.meshHeight = opts.meshHeight
     this.aspectx = opts.aspectx
     this.aspecty = opts.aspecty
     this.invAspectx = 1.0 / this.aspectx
@@ -47,9 +47,9 @@ export default class CustomWaveform {
   createShader() {
     this.shaderProgram = this.gl.createProgram()
 
-    const vertShader = this.gl.createShader(this.gl.VERTEX_SHADER)
+    const vertexShader = this.gl.createShader(this.gl.VERTEX_SHADER)
     this.gl.shaderSource(
-      vertShader,
+      vertexShader,
       `
       #version 300 es
       uniform float uSize;
@@ -64,7 +64,7 @@ export default class CustomWaveform {
       }
       `.trim(),
     )
-    this.gl.compileShader(vertShader)
+    this.gl.compileShader(vertexShader)
 
     const fragShader = this.gl.createShader(this.gl.FRAGMENT_SHADER)
     this.gl.shaderSource(
@@ -83,7 +83,7 @@ export default class CustomWaveform {
     )
     this.gl.compileShader(fragShader)
 
-    this.gl.attachShader(this.shaderProgram, vertShader)
+    this.gl.attachShader(this.shaderProgram, vertexShader)
     this.gl.attachShader(this.shaderProgram, fragShader)
     this.gl.linkProgram(this.shaderProgram)
 
