@@ -1,7 +1,7 @@
-import { expect } from '@jest/globals';
-import { toMatchImageSnapshot } from 'jest-image-snapshot';
+import { createImageSnapshotMatcher } from '../utils/imageSnapshot.js';
 
-expect.extend({ toMatchImageSnapshot });
+// Create the image snapshot matcher
+export const toMatchImageSnapshot = createImageSnapshotMatcher();
 
 export const imageSnapshotConfig = {
   // Expect pixel-perfect matches (0% tolerance)

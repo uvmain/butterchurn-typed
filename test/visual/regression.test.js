@@ -1,11 +1,12 @@
 import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
-import { describe, test, expect, beforeAll, afterAll } from '@jest/globals';
+import { describe, test, before, after } from 'node:test';
+import assert from 'node:assert';
 import { getBrowser, closeBrowser, createPage } from './utils/puppeteer.js';
 import { renderButterchurn } from './utils/renderButterchurn.js';
 import TestServer from './utils/testServer.js';
-import { imageSnapshotConfig } from './setup.js';
+import { toMatchImageSnapshot, imageSnapshotConfig } from './setup.js';
 
 const FRAMES_TO_RENDER = 120;
 const SEED1 = 12345;
@@ -18,14 +19,14 @@ describe('Butterchurn Visual Regression Tests', () => {
   const width = 800;
   const height = 600;
 
-  beforeAll(async () => {
+  before(async () => {
     testServer = new TestServer();
     await testServer.start();
     serverUrl = testServer.getUrl();
     await getBrowser();
   });
 
-  afterAll(async () => {
+  after(async () => {
     await closeBrowser();
     await testServer.stop();
   });
@@ -58,7 +59,7 @@ describe('Butterchurn Visual Regression Tests', () => {
   ].sort(() => 0.5 - Math.random());
 
   let testAudioData;
-  beforeAll(() => {
+  before(() => {
     const audioFilePath = path.join(process.cwd(), 'test/fixtures/audioAnalysisData.json');
     if (!fs.existsSync(audioFilePath)) {
       throw new Error(`Audio analysis file not found: ${audioFilePath}\nPlease ensure audioAnalysisData.json is in the test/fixtures directory`);
@@ -77,26 +78,28 @@ describe('Butterchurn Visual Regression Tests', () => {
 
         const screenshot1 = await renderButterchurn(page, serverUrl, width, height, name, audioData, FRAMES_TO_RENDER, SEED1, 'js');
 
-        expect(screenshot1).toMatchImageSnapshot({
+        // Use custom image snapshot matcher
+        assert.ok(toMatchImageSnapshot(screenshot1, {
           ...imageSnapshotConfig,
           customSnapshotIdentifier: () => `${cleanName}-${SEED1}`
-        });
+        }), 'First screenshot should match snapshot');
 
         const screenshot2 = await renderButterchurn(page, serverUrl, width, height, name, audioData, FRAMES_TO_RENDER, SEED2, 'js');
 
-        expect(screenshot2).toMatchImageSnapshot({
+        // Use custom image snapshot matcher  
+        assert.ok(toMatchImageSnapshot(screenshot2, {
           ...imageSnapshotConfig,
           customSnapshotIdentifier: () => `${cleanName}-${SEED2}`
-        });
+        }), 'Second screenshot should match snapshot');
 
         // Compare image hashes instead of raw buffers to avoid slow diff generation
         const hash1 = crypto.createHash('sha256').update(screenshot1).digest('hex');
         const hash2 = crypto.createHash('sha256').update(screenshot2).digest('hex');
 
         if (seedIndependent) {
-          expect(hash2).toEqual(hash1);
+          assert.strictEqual(hash2, hash1, 'Hashes should be equal for seed-independent presets');
         } else {
-          expect(hash2).not.toEqual(hash1);
+          assert.notStrictEqual(hash2, hash1, 'Hashes should be different for seed-dependent presets');
         }
       } finally {
         await page.close();
@@ -113,26 +116,28 @@ describe('Butterchurn Visual Regression Tests', () => {
 
         const screenshot1 = await renderButterchurn(page, serverUrl, width, height, name, audioData, FRAMES_TO_RENDER, SEED1, 'wasm');
 
-        expect(screenshot1).toMatchImageSnapshot({
+        // Use custom image snapshot matcher
+        assert.ok(toMatchImageSnapshot(screenshot1, {
           ...imageSnapshotConfig,
           customSnapshotIdentifier: () => `${cleanName}-${SEED1}_wasm`
-        });
+        }), 'First WASM screenshot should match snapshot');
 
         const screenshot2 = await renderButterchurn(page, serverUrl, width, height, name, audioData, FRAMES_TO_RENDER, SEED2, 'wasm');
 
-        expect(screenshot2).toMatchImageSnapshot({
+        // Use custom image snapshot matcher
+        assert.ok(toMatchImageSnapshot(screenshot2, {
           ...imageSnapshotConfig,
           customSnapshotIdentifier: () => `${cleanName}-${SEED2}_wasm`
-        });
+        }), 'Second WASM screenshot should match snapshot');
 
         // Compare image hashes instead of raw buffers to avoid slow diff generation
         const hash1 = crypto.createHash('sha256').update(screenshot1).digest('hex');
         const hash2 = crypto.createHash('sha256').update(screenshot2).digest('hex');
 
         if (seedIndependent) {
-          expect(hash2).toEqual(hash1);
+          assert.strictEqual(hash2, hash1, 'WASM hashes should be equal for seed-independent presets');
         } else {
-          expect(hash2).not.toEqual(hash1);
+          assert.notStrictEqual(hash2, hash1, 'WASM hashes should be different for seed-dependent presets');
         }
       } finally {
         await page.close();

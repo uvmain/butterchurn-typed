@@ -12,15 +12,16 @@
     "dist/isSupported.min.js"
   ],
   "scripts": {
-    "build": "NODE_ENV=production rollup -c",
+    "build": "cross-env NODE_ENV=production rollup -c",
+    "build:dev": "cross-env NODE_ENV=development rollup -c",
     "dev": "rollup -c -w",
     "dev-build": "rollup -c",
-    "test": "NODE_OPTIONS=\"--experimental-vm-modules\" jest --config jest.config.mjs",
-    "test:visual": "NODE_OPTIONS=\"--experimental-vm-modules\" jest --config jest.config.mjs test/visual/regression.test.js",
-    "test:visual:update": "NODE_OPTIONS=\"--experimental-vm-modules\" jest --config jest.config.mjs test/visual/regression.test.js --updateSnapshot",
-    "test:visual:watch": "NODE_OPTIONS=\"--experimental-vm-modules\" jest --config jest.config.mjs test/visual/regression.test.js --watch",
-    "test:visual:local": "yarn build && yarn test:visual",
-    "test:visual:view": "open test/visual/__image_snapshots__/__diff_output__"
+    "test": "node --test test/**/*.test.js",
+    "test:visual": "node --test test/visual/regression.test.js",
+    "test:visual:update": "cross-env UPDATE_SNAPSHOTS=true node --test test/visual/regression.test.js",
+    "test:visual:watch": "node --test --watch test/visual/regression.test.js",
+    "test:visual:local": "npm run build:dev && npm run test:visual",
+    "test:visual:view": "start test/visual/__image_snapshots__/__diff_output__"
   },
   "repository": {
     "type": "git",
@@ -45,22 +46,16 @@
     "@rollup/plugin-node-resolve": "^16.0.1",
     "@rollup/plugin-terser": "^0.4.4",
     "@rollup/pluginutils": "^5.2.0",
-    "@types/jest": "^30.0.0",
     "assemblyscript": "^0.17.11",
     "butterchurn-presets": "3.0.0-beta.4",
     "butterchurn-presets-js": "npm:butterchurn-presets@^2.4.7",
+    "cross-env": "^10.1.0",
     "eslint": "^7.9.0",
     "eslint-plugin-prettier": "^3.1.4",
-    "jest": "^30.0.4",
-    "jest-image-snapshot": "^6.5.1",
     "prettier": "^2.1.2",
     "puppeteer": "^24.12.1",
     "rollup": "^4.44.2",
     "rollup-plugin-copy": "^3.5.0"
   },
-  "browserslist": "supports audio-api and supports webgl2 and last 3 years",
-  "packageManager": "pnpm@10.6.5+sha1.da220e966c2db3275efb5928cf8f3592681b106b",
-  "pnpm": {
-    "onlyBuiltDependencies": ["puppeteer"]
-  }
+  "browserslist": "supports audio-api and supports webgl2 and last 3 years"
 }
