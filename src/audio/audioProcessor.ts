@@ -1,7 +1,30 @@
 import FFT from './fft'
 
 export default class AudioProcessor {
-  constructor(context) {
+  numSamps: number
+  fftSize: number
+  fft: any
+  audioContext?: AudioContext
+  audible: DelayNode | undefined
+  analyser: AnalyserNode | undefined
+  analyserL: AnalyserNode | undefined
+  analyserR: AnalyserNode | undefined
+  splitter: ChannelSplitterNode | undefined
+  timeByteArray: Uint8Array<ArrayBuffer>
+  timeByteArrayL: Uint8Array<ArrayBuffer>
+  timeByteArrayR: Uint8Array<ArrayBuffer>
+  timeArray: Int8Array
+  timeByteArraySignedL: Int8Array
+  timeByteArraySignedR: Int8Array
+  tempTimeArrayL: Int8Array
+  tempTimeArrayR: Int8Array
+  timeArrayL: Int8Array
+  timeArrayR: Int8Array
+  freqArray: any
+  freqArrayL: any
+  freqArrayR: any
+
+  constructor(context: AudioContext | null = null) {
     this.numSamps = 512
     this.fftSize = this.numSamps * 2
 
@@ -54,13 +77,16 @@ export default class AudioProcessor {
   }
 
   sampleAudio() {
+    if (!this.analyser || !this.analyserL || !this.analyserR) {
+      return
+    }
     this.analyser.getByteTimeDomainData(this.timeByteArray)
     this.analyserL.getByteTimeDomainData(this.timeByteArrayL)
     this.analyserR.getByteTimeDomainData(this.timeByteArrayR)
     this.processAudio()
   }
 
-  updateAudio(timeByteArray, timeByteArrayL, timeByteArrayR) {
+  updateAudio(timeByteArray: Uint8Array<ArrayBuffer>, timeByteArrayL: Uint8Array<ArrayBuffer>, timeByteArrayR: Uint8Array<ArrayBuffer>) {
     this.timeByteArray.set(timeByteArray)
     this.timeByteArrayL.set(timeByteArrayL)
     this.timeByteArrayR.set(timeByteArrayR)

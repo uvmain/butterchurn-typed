@@ -1,5 +1,17 @@
+import type AudioProcessor from './audioProcessor'
+import { clamp } from '../utils/math'
+
 export default class AudioLevels {
-  constructor(audio) {
+  audio: AudioProcessor
+  starts: number[]
+  stops: number[]
+  val: Float32Array
+  imm: Float32Array
+  att: Float32Array
+  avg: Float32Array
+  longAvg: Float32Array
+
+  constructor(audio: AudioProcessor) {
     this.audio = audio
 
     let sampleRate
@@ -12,22 +24,22 @@ export default class AudioLevels {
 
     const bucketHz = sampleRate / this.audio.fftSize
 
-    const bassLow = Math.clamp(
+    const bassLow = clamp(
       Math.round(20 / bucketHz) - 1,
       0,
       this.audio.numSamps - 1,
     )
-    const bassHigh = Math.clamp(
+    const bassHigh = clamp(
       Math.round(320 / bucketHz) - 1,
       0,
       this.audio.numSamps - 1,
     )
-    const midHigh = Math.clamp(
+    const midHigh = clamp(
       Math.round(2800 / bucketHz) - 1,
       0,
       this.audio.numSamps - 1,
     )
-    const trebHigh = Math.clamp(
+    const trebHigh = clamp(
       Math.round(11025 / bucketHz) - 1,
       0,
       this.audio.numSamps - 1,
@@ -47,39 +59,39 @@ export default class AudioLevels {
     this.longAvg.fill(1)
   }
 
-  get bass() {
+  get bass(): number {
     return this.val[0]
   }
 
-  get bass_att() {
+  get bass_att(): number {
     return this.att[0]
   }
 
-  get mid() {
+  get mid(): number {
     return this.val[1]
   }
 
-  get mid_att() {
+  get mid_att(): number {
     return this.att[1]
   }
 
-  get treb() {
+  get treb(): number {
     return this.val[2]
   }
 
-  get treb_att() {
+  get treb_att(): number {
     return this.att[2]
   }
 
-  static isFiniteNumber(num) {
+  static isFiniteNumber(num): boolean {
     return Number.isFinite(num) && !Number.isNaN(num)
   }
 
-  static adjustRateToFPS(rate, baseFPS, FPS) {
+  static adjustRateToFPS(rate: number, baseFPS: number, FPS: number): number {
     return rate ** (baseFPS / FPS)
   }
 
-  updateAudioLevels(fps, frame) {
+  updateAudioLevels(fps: number, frame: number) {
     if (this.audio.freqArray.length > 0) {
       let effectiveFPS = fps
       if (!AudioLevels.isFiniteNumber(effectiveFPS) || effectiveFPS < 15) {

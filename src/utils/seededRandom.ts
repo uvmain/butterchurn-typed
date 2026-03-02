@@ -2,7 +2,17 @@
  * SeededRandom - Deterministic pseudo-random number generator
  * Using xorshift128+ algorithm
  */
+export interface RNGContext {
+  random: () => number
+  rand: (x: number) => number
+  randint: (x: number) => number
+  getRNG: () => SeededRandom | null
+  reset: (newSeed?: number) => void
+}
+
 export class SeededRandom {
+  state: Uint32Array
+
   constructor(seed = 1) {
     this.state = new Uint32Array(4)
     SeededRandom.initializeState(this.state, seed)
@@ -25,7 +35,7 @@ export class SeededRandom {
   /**
    * Generate next random number in [0, 1)
    */
-  next() {
+  next(): number {
     // xorshift128+ algorithm
     let t = this.state[3]
     const s = this.state[0]
@@ -44,7 +54,7 @@ export class SeededRandom {
   /**
    * Generate random integer in [0, max)
    */
-  nextInt(max) {
+  nextInt(max: number): number {
     return Math.floor(this.next() * max)
   }
 
@@ -52,7 +62,7 @@ export class SeededRandom {
    * Generate random number in [0, max)
    * Mimics butterchurn's rand() behavior
    */
-  rand(max) {
+  rand(max: number): number {
     if (max < 1) {
       return this.next()
     }
@@ -62,13 +72,13 @@ export class SeededRandom {
   /**
    * Reset generator to initial seed
    */
-  reset(seed) {
+  reset(seed: number) {
     SeededRandom.initializeState(this.state, seed)
     this.warmUp()
   }
 }
 
-export function createRNGContext(seed = 1) {
+export function createRNGContext(seed = 1): RNGContext {
   const rng = new SeededRandom(seed)
 
   return {
@@ -87,7 +97,7 @@ export function createRNGContext(seed = 1) {
   }
 }
 
-export function createDefaultRNGContext() {
+export function createDefaultRNGContext(): RNGContext {
   return {
     random: Math.random,
     rand: x => x < 1 ? Math.random() : Math.random() * Math.floor(x),
