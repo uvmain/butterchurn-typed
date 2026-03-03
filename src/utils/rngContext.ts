@@ -5,13 +5,18 @@ let originalRand: ((x: number) => number) | null = null
 let originalRandint: ((x: number) => number) | null = null
 let originalMathRandom: (() => number) | null = null
 
-export interface RNGOptions {
+export interface VisualiserOptions {
   deterministic?: boolean
   testMode?: boolean
   seed?: number
   width?: number
   height?: number
   onlyUseWASM?: boolean
+  meshWidth?: number
+  meshHeight?: number
+  pixelRatio?: number
+  textureRatio?: number
+  outputFXAA?: boolean
 }
 
 export interface RNGContext {
@@ -22,7 +27,7 @@ export interface RNGContext {
   reset: (newSeed?: number) => void
 }
 
-export function initializeRNG(opts: RNGOptions = {}): RNGContext {
+export function initializeRNG(opts: VisualiserOptions = {}): RNGContext {
   if (opts.deterministic || opts.testMode) {
     globalRNG = createRNGContext(opts.seed || 12345)
   }
@@ -99,6 +104,6 @@ export function createDefaultRNGContext(): RNGContext {
     rand: x => x < 1 ? Math.random() : Math.random() * Math.floor(x),
     randint: x => Math.floor((x < 1 ? Math.random() : Math.random() * Math.floor(x)) + 1),
     getRNG: () => null,
-    reset: () => {},
+    reset: () => { },
   }
 }

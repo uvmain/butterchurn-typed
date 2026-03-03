@@ -3,6 +3,9 @@
   "files.associations": {
     "**/assemblyscript/**/*.as": "assemblyscript"
   },
-  "editor.formatOnSave": true,
+  "editor.formatOnSave": false,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
   "typescript.validate.enable": true
 }

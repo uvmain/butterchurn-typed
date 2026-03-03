@@ -1,6 +1,7 @@
+import type { AudioTimeBytes } from './types/AudioTimeBytes'
 import type { BaseVals } from './types/BasePreset'
 import type { PresetFunctionsModule } from './types/PresetFunctions'
-import type { RNGContext, RNGOptions } from './utils/rngContext'
+import type { RNGContext, VisualiserOptions } from './utils/rngContext'
 import * as ascLoader from '@assemblyscript/loader'
 import { loadModule } from 'eel-wasm'
 import loadPresetFunctionsBuffer from './assemblyscript/presetFunctions.as'
@@ -10,13 +11,13 @@ import Utils from './utils'
 import { initializeRNG } from './utils/rngContext'
 
 export default class Visualizer {
-  opts: RNGOptions
+  opts: VisualiserOptions
   rng: RNGContext
   deterministicMode: boolean
   audio: AudioProcessor
   audioNode!: AudioNode | null
   internalCanvas: HTMLCanvasElement | OffscreenCanvas
-  gl: WebGL2RenderingContext | null
+  gl: WebGL2RenderingContext
   outputGl: CanvasRenderingContext2D | null
   baseValsDefaults: BaseVals
   shapeBaseValsDefaults: BaseVals
@@ -28,9 +29,9 @@ export default class Visualizer {
   globalShapeVars: string[]
   shapeBaseVars: string[]
   globalWaveVars: string[]
-  renderer: Renderer
+  renderer!: Renderer
 
-  constructor(audioContext: AudioContext, canvas: HTMLCanvasElement, opts: RNGOptions = {}) {
+  constructor(audioContext: AudioContext, canvas: HTMLCanvasElement, opts: VisualiserOptions = {}) {
     this.opts = opts
 
     // Initialize RNG context
@@ -55,7 +56,7 @@ export default class Visualizer {
       depth: false,
       stencil: false,
       premultipliedAlpha: false,
-    })
+    }) as WebGL2RenderingContext
 
     this.outputGl = canvas.getContext('2d', { willReadFrequently: false })
 
@@ -299,7 +300,9 @@ export default class Visualizer {
       'value2',
     ]
 
-    this.renderer = new Renderer(this.gl, this.audio, opts)
+    if (this.gl) {
+      this.renderer = new Renderer(this.gl, this.audio, opts)
+    }
   }
 
   loseGLContext() {
@@ -307,18 +310,18 @@ export default class Visualizer {
     this.outputGl = null
   }
 
-  connectAudio(audioNode) {
+  connectAudio(audioNode: AudioNode) {
     this.audioNode = audioNode
     this.audio.connectAudio(audioNode)
   }
 
-  disconnectAudio(audioNode) {
+  disconnectAudio(audioNode: AudioNode) {
     this.audio.disconnectAudio(audioNode)
   }
 
   // Override defaults, but only include variables in default map
-  static overrideDefaultVars(baseValsDefaults, baseVals) {
-    const combinedVals = {}
+  static overrideDefaultVars(baseValsDefaults: { [key: string]: any }, baseVals: { [key: string]: any }) {
+    const combinedVals: { [key: string]: any } = {}
 
     Object.keys(baseValsDefaults).forEach((key) => {
       if (Object.prototype.hasOwnProperty.call(baseVals, key)) {
@@ -332,8 +335,8 @@ export default class Visualizer {
     return combinedVals
   }
 
-  createQVars() {
-    const wasmVars = {}
+  createQVars(): { [key: string]: WebAssembly.Global } {
+    const wasmVars: { [key: string]: WebAssembly.Global } = {}
 
     this.qs.forEach((key) => {
       wasmVars[key] = new WebAssembly.Global(
@@ -345,8 +348,8 @@ export default class Visualizer {
     return wasmVars
   }
 
-  createTVars() {
-    const wasmVars = {}
+  createTVars(): { [key: string]: WebAssembly.Global } {
+    const wasmVars: { [key: string]: WebAssembly.Global } = {}
 
     this.ts.forEach((key) => {
       wasmVars[key] = new WebAssembly.Global(
@@ -358,7 +361,7 @@ export default class Visualizer {
     return wasmVars
   }
 
-  createPerFramePool(baseVals) {
+  createPerFramePool(baseVals: { [key: string]: any }): { [key: string]: WebAssembly.Global } {
     const wasmVars = {}
 
     Object.keys(this.baseValsDefaults).forEach((key) => {
@@ -378,7 +381,7 @@ export default class Visualizer {
     return wasmVars
   }
 
-  createPerPixelPool(baseVals) {
+  createPerPixelPool(baseVals: { [key: string]: any }): { [key: string]: WebAssembly.Global } {
     const wasmVars = {}
 
     Object.keys(this.baseValsDefaults).forEach((key) => {
@@ -398,7 +401,7 @@ export default class Visualizer {
     return wasmVars
   }
 
-  createCustomShapePerFramePool(baseVals) {
+  createCustomShapePerFramePool(baseVals: { [key: string]: any }): { [key: string]: WebAssembly.Global } {
     const wasmVars = {}
 
     Object.keys(this.shapeBaseValsDefaults).forEach((key) => {
@@ -418,7 +421,7 @@ export default class Visualizer {
     return wasmVars
   }
 
-  createCustomWavePerFramePool(baseVals) {
+  createCustomWavePerFramePool(baseVals: { [key: string]: any }): { [key: string]: WebAssembly.Global } {
     const wasmVars = {}
 
     Object.keys(this.waveBaseValsDefaults).forEach((key) => {
@@ -438,13 +441,13 @@ export default class Visualizer {
     return wasmVars
   }
 
-  static makeShapeResetPool(pool, variables, idx) {
+  static makeShapeResetPool(pool: { [key: string]: WebAssembly.Global }, variables: string[], idx: number): { [key: string]: WebAssembly.Global } {
     return variables.reduce((acc, variable) => {
       return { ...acc, [`${variable}_${idx}`]: pool[variable] }
     }, {})
   }
 
-  static base64ToArrayBuffer(base64) {
+  static base64ToArrayBuffer(base64: string): ArrayBuffer {
     const binaryString = window.atob(base64)
     const len = binaryString.length
     const bytes = new Uint8Array(len)
@@ -454,7 +457,7 @@ export default class Visualizer {
     return bytes.buffer
   }
 
-  async loadPreset(presetMap, blendTime = 0) {
+  async loadPreset(presetMap: { [key: string]: any }, blendTime = 0) {
     const preset = JSON.parse(JSON.stringify(presetMap))
     preset.baseVals = Visualizer.overrideDefaultVars(
       this.baseValsDefaults,
@@ -500,7 +503,7 @@ export default class Visualizer {
     }
   }
 
-  async loadWASMPreset(preset, blendTime) {
+  async loadWASMPreset(preset: any, blendTime: number) {
     const qWasmVars = this.createQVars()
     const tWasmVars = this.createTVars()
 
@@ -777,29 +780,29 @@ export default class Visualizer {
     this.renderer.loadPreset(preset, blendTime)
   }
 
-  loadExtraImages(imageData) {
+  loadExtraImages(imageData: Record<string, { data: string }>) {
     this.renderer.loadExtraImages(imageData)
   }
 
-  setRendererSize(width, height, opts = {}) {
+  setRendererSize(width: number, height: number, opts: VisualiserOptions = {}) {
     this.internalCanvas.width = width
     this.internalCanvas.height = height
     this.renderer.setRendererSize(width, height, opts)
   }
 
-  setInternalMeshSize(width, height) {
+  setInternalMeshSize(width: number, height: number) {
     this.renderer.setInternalMeshSize(width, height)
   }
 
-  setOutputAA(useAA) {
+  setOutputAA(useAA: boolean) {
     this.renderer.setOutputAA(useAA)
   }
 
-  setCanvas(canvas) {
+  setCanvas(canvas: HTMLCanvasElement) {
     this.outputGl = canvas.getContext('2d', { willReadFrequently: false })
   }
 
-  render(opts) {
+  render(opts: { audioLevels?: AudioTimeBytes, elapsedTime?: number } = {}): void {
     const renderOutput = this.renderer.render(opts)
 
     if (this.outputGl) {
@@ -809,15 +812,15 @@ export default class Visualizer {
     return renderOutput
   }
 
-  launchSongTitleAnim(text) {
+  launchSongTitleAnim(text: string) {
     this.renderer.launchSongTitleAnim(text)
   }
 
-  toDataURL() {
+  toDataURL(): string {
     return this.renderer.toDataURL()
   }
 
-  warpBufferToDataURL() {
+  warpBufferToDataURL(): string {
     return this.renderer.warpBufferToDataURL()
   }
 }

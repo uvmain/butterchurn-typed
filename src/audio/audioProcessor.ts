@@ -1,3 +1,4 @@
+import type { AudioTimeBytes } from '../types/AudioTimeBytes'
 import FFT from './fft'
 
 export default class AudioProcessor {
@@ -86,10 +87,10 @@ export default class AudioProcessor {
     this.processAudio()
   }
 
-  updateAudio(timeByteArray: Uint8Array<ArrayBuffer>, timeByteArrayL: Uint8Array<ArrayBuffer>, timeByteArrayR: Uint8Array<ArrayBuffer>) {
-    this.timeByteArray.set(timeByteArray)
-    this.timeByteArrayL.set(timeByteArrayL)
-    this.timeByteArrayR.set(timeByteArrayR)
+  updateAudio(timeByteArrays: AudioTimeBytes) {
+    this.timeByteArray.set(timeByteArrays.timeByteArray)
+    this.timeByteArrayL.set(timeByteArrays.timeByteArrayL)
+    this.timeByteArrayR.set(timeByteArrays.timeByteArrayR)
     this.processAudio()
   }
 

@@ -1,3 +1,6 @@
+import type AudioProcessor from '../audio/audioProcessor'
+import type { AudioTimeBytes } from '../types/AudioTimeBytes'
+import type { VisualiserOptions } from '../utils/rngContext'
 import AudioLevels from '../audio/audioLevels'
 import blankPreset from '../blankPreset'
 import PresetEquationRunner from '../equations/presetEquationRunner'
@@ -5,6 +8,7 @@ import PresetEquationRunnerWASM from '../equations/presetEquationRunnerWASM'
 import ImageTextures from '../image/imageTextures'
 import Noise from '../noise/noise'
 import Utils from '../utils'
+import { clamp } from '../utils/math'
 import BlendPattern from './blendPattern'
 import MotionVectors from './motionVectors/motionVectors'
 import BlurShader from './shaders/blur/blur'
@@ -20,7 +24,95 @@ import BasicWaveform from './waves/basicWaveform'
 import CustomWaveform from './waves/customWaveform'
 
 export default class Renderer {
-  constructor(gl, audio, opts) {
+  gl: WebGL2RenderingContext
+  audio: AudioProcessor
+  frameNum: number
+  fps: number
+  time: number
+  presetTime: number
+  lastTime: number
+  timeHist: number[]
+  timeHistMax: number
+  blending: boolean
+  blendStartTime: number
+  blendProgress: number
+  blendDuration: number
+  width: number
+  height: number
+  meshWidth: number
+  meshHeight: number
+  pixelRatio: number
+  textureRatio: number
+  texsizeX: number
+  texsizeY: number
+  outputFXAA: boolean
+  aspectx: number
+  aspecty: number
+  invAspectx: number
+  invAspecty: number
+  qs: string[]
+  ts: string[]
+  regs: string[]
+  blurRatios: number[][]
+  audioLevels: AudioLevels
+  prevFrameBuffer: WebGLFramebuffer | null
+  targetFrameBuffer: WebGLFramebuffer | null
+  prevTexture: WebGLTexture | null
+  targetTexture: WebGLTexture | null
+  compFrameBuffer: WebGLFramebuffer | null
+  compTexture: WebGLTexture | null
+  anisoExt: EXT_texture_filter_anisotropic | null
+
+  noise: Noise
+  image: ImageTextures
+  warpShader: WarpShader
+  compShader: CompShader
+  outputShader: OutputShader
+  prevWarpShader: WarpShader
+  prevCompShader: CompShader
+  numBlurPasses: number
+  blurShader1: BlurShader
+  blurShader2: BlurShader
+  blurShader3: BlurShader
+  blurTexture1: WebGLTexture | null
+  blurTexture2: WebGLTexture | null
+  blurTexture3: WebGLTexture | null
+  basicWaveform: BasicWaveform
+  customWaveforms: CustomWaveform[]
+  customShapes: CustomShape[]
+  prevCustomWaveforms: CustomWaveform[]
+  prevCustomShapes: CustomShape[]
+  darkenCenter: DarkenCenter
+  innerBorder: Border
+  outerBorder: Border
+  motionVectors: MotionVectors
+  titleText: TitleText
+  blendPattern: BlendPattern
+  resampleShader: ResampleShader
+
+  supertext: {
+    startTime: number
+    duration: number
+  }
+
+  warpUVs: Float32Array
+  warpColor: Float32Array
+  blankPreset: any
+  preset: any
+  prevPreset: any
+  presetEquationRunner: PresetEquationRunner | PresetEquationRunnerWASM
+  prevPresetEquationRunner: PresetEquationRunner | PresetEquationRunnerWASM
+  regVars: any
+  superVars: any
+  frame!: number
+
+  mdVSVertex: any
+  prevMDVSFrame: any
+  globalVars: any
+  mdVSFrame: any
+  mdVSFrameMixed: any
+
+  constructor(gl: WebGL2RenderingContext, audio: AudioProcessor, opts: VisualiserOptions) {
     this.gl = gl
     this.audio = audio
 
@@ -133,6 +225,7 @@ export default class Renderer {
 
     this.supertext = {
       startTime: -1,
+      duration: 0,
     }
 
     this.warpUVs = new Float32Array(
@@ -176,7 +269,7 @@ export default class Renderer {
     }
   }
 
-  static getHighestBlur(t) {
+  static getHighestBlur(t: string): number {
     if (/sampler_blur3/.test(t)) {
       return 3
     }
@@ -190,7 +283,7 @@ export default class Renderer {
     return 0
   }
 
-  loadPreset(preset, blendTime) {
+  loadPreset(preset: any, blendTime: number) {
     this.blendPattern.createBlendPattern()
     this.blending = true
     this.blendStartTime = this.time
@@ -280,11 +373,11 @@ export default class Renderer {
     }
   }
 
-  loadExtraImages(imageData) {
+  loadExtraImages(imageData: Record<string, { data: string }>) {
     this.image.loadExtraImages(imageData)
   }
 
-  setRendererSize(width, height, opts) {
+  setRendererSize(width: number, height: number, opts: VisualiserOptions = {}) {
     const oldTexsizeX = this.texsizeX
     const oldTexsizeY = this.texsizeY
 
@@ -327,14 +420,14 @@ export default class Renderer {
     }
   }
 
-  setInternalMeshSize(width, height) {
+  setInternalMeshSize(width: number, height: number) {
     this.meshWidth = width
     this.meshHeight = height
 
     this.updateGlobals()
   }
 
-  setOutputAA(useAA) {
+  setOutputAA(useAA: boolean) {
     this.outputFXAA = useAA
   }
 
@@ -383,8 +476,8 @@ export default class Renderer {
     }
   }
 
-  calcTimeAndFPS(elapsedTime) {
-    let elapsed
+  calcTimeAndFPS(elapsedTime: number) {
+    let elapsed: number
     if (elapsedTime) {
       elapsed = elapsedTime
     }
@@ -423,7 +516,7 @@ export default class Renderer {
     }
   }
 
-  runPixelEquations(presetEquationRunner, mdVSFrame, globalVars, blending) {
+  runPixelEquations(presetEquationRunner: any, mdVSFrame: any, globalVars: any, blending: boolean) {
     const gridX = this.meshWidth
     const gridZ = this.meshHeight
 
@@ -573,7 +666,7 @@ export default class Renderer {
             let mix2
               = this.blendPattern.vertInfoA[offset / 2] * this.blendProgress
                 + this.blendPattern.vertInfoC[offset / 2]
-            mix2 = Math.clamp(mix2, 0, 1)
+            mix2 = clamp(mix2, 0, 1)
 
             this.warpUVs[offset] = this.warpUVs[offset] * mix2 + u * (1 - mix2)
             this.warpUVs[offset + 1]
@@ -641,7 +734,7 @@ export default class Renderer {
             let mix2
               = this.blendPattern.vertInfoA[offset / 2] * this.blendProgress
                 + this.blendPattern.vertInfoC[offset / 2]
-            mix2 = Math.clamp(mix2, 0, 1)
+            mix2 = clamp(mix2, 0, 1)
 
             this.warpUVs[offset] = this.warpUVs[offset] * mix2 + u * (1 - mix2)
             this.warpUVs[offset + 1]
@@ -660,7 +753,7 @@ export default class Renderer {
     }
   }
 
-  static mixFrameEquations(blendProgress, mdVSFrame, mdVSFramePrev) {
+  static mixFrameEquations(blendProgress: number, mdVSFrame: any, mdVSFramePrev: any) {
     const mix = 0.5 - 0.5 * Math.cos(blendProgress * Math.PI)
     const mix2 = 1 - mix
     const snapPoint = 0.5
@@ -733,7 +826,7 @@ export default class Renderer {
     return mixedFrame
   }
 
-  static getBlurValues(mdVSFrame) {
+  static getBlurValues(mdVSFrame: any): { blurMins: number[], blurMaxs: number[] } {
     let blurMin1 = mdVSFrame.b1n
     let blurMin2 = mdVSFrame.b2n
     let blurMin3 = mdVSFrame.b3n
@@ -768,12 +861,12 @@ export default class Renderer {
     }
   }
 
-  bindFrambufferAndSetViewport(fb, width, height) {
+  bindFrambufferAndSetViewport(fb: WebGLFramebuffer | null, width: number, height: number) {
     this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, fb)
     this.gl.viewport(0, 0, width, height)
   }
 
-  bindFrameBufferTexture(targetFrameBuffer, targetTexture) {
+  bindFrameBufferTexture(targetFrameBuffer: WebGLFramebuffer | null, targetTexture: WebGLTexture | null) {
     this.gl.bindTexture(this.gl.TEXTURE_2D, targetTexture)
 
     this.gl.pixelStorei(this.gl.UNPACK_ALIGNMENT, 1)
@@ -832,16 +925,12 @@ export default class Renderer {
     )
   }
 
-  render({ audioLevels, elapsedTime } = {}) {
-    this.calcTimeAndFPS(elapsedTime)
+  render({ audioLevels, elapsedTime }: { audioLevels?: AudioTimeBytes, elapsedTime?: number } = {}): void {
+    this.calcTimeAndFPS(elapsedTime || 0)
     this.frameNum += 1
 
     if (audioLevels) {
-      this.audio.updateAudio(
-        audioLevels.timeByteArray,
-        audioLevels.timeByteArrayL,
-        audioLevels.timeByteArrayR,
-      )
+      this.audio.updateAudio(audioLevels)
     }
     else {
       this.audio.sampleAudio()
@@ -864,9 +953,10 @@ export default class Renderer {
       aspecty: this.invAspecty,
       pixelsx: this.texsizeX,
       pixelsy: this.texsizeY,
+      gmegabuf: null,
     }
 
-    const prevGlobalVars = Object.assign({}, globalVars)
+    const prevGlobalVars = Object.assign({}, globalVars) as any
     if (!this.prevPreset.useWASM) {
       prevGlobalVars.gmegabuf = this.prevPresetEquationRunner.gmegabuf
     }
@@ -923,11 +1013,13 @@ export default class Renderer {
     this.gl.bindTexture(this.gl.TEXTURE_2D, this.prevTexture)
     this.gl.generateMipmap(this.gl.TEXTURE_2D)
 
-    this.bindFrambufferAndSetViewport(
-      this.targetFrameBuffer,
-      this.texsizeX,
-      this.texsizeY,
-    )
+    if (this.targetFrameBuffer) {
+      this.bindFrambufferAndSetViewport(
+        this.targetFrameBuffer,
+        this.texsizeX,
+        this.texsizeY,
+      )
+    }
 
     this.gl.clear(this.gl.COLOR_BUFFER_BIT)
     this.gl.enable(this.gl.BLEND)
@@ -1007,12 +1099,14 @@ export default class Renderer {
         }
       }
 
+      if (this.targetFrameBuffer) {
       // rebind target texture framebuffer
-      this.bindFrambufferAndSetViewport(
-        this.targetFrameBuffer,
-        this.texsizeX,
-        this.texsizeY,
-      )
+        this.bindFrambufferAndSetViewport(
+          this.targetFrameBuffer,
+          this.texsizeX,
+          this.texsizeY,
+        )
+      }
     }
 
     this.motionVectors.drawMotionVectors(mdVSFrameMixed, this.warpUVs)
@@ -1120,7 +1214,7 @@ export default class Renderer {
   }
 
   renderToScreen() {
-    if (this.outputFXAA) {
+    if (this.outputFXAA && this.compFrameBuffer) {
       this.bindFrambufferAndSetViewport(
         this.compFrameBuffer,
         this.texsizeX,
@@ -1199,7 +1293,7 @@ export default class Renderer {
     }
   }
 
-  launchSongTitleAnim(text) {
+  launchSongTitleAnim(text: string) {
     this.supertext = {
       startTime: this.time,
       duration: 1.7,
@@ -1207,7 +1301,7 @@ export default class Renderer {
     this.titleText.generateTitleTexture(text)
   }
 
-  toDataURL() {
+  toDataURL(): string {
     const data = new Uint8Array(this.texsizeX * this.texsizeY * 4)
 
     const compFrameBuffer = this.gl.createFramebuffer()
@@ -1250,9 +1344,13 @@ export default class Renderer {
     canvas.height = this.texsizeY
 
     const context = canvas.getContext('2d', { willReadFrequently: false })
-    const imageData = context.createImageData(this.texsizeX, this.texsizeY)
-    imageData.data.set(data)
-    context.putImageData(imageData, 0, 0)
+    const imageData = context?.createImageData(this.texsizeX, this.texsizeY)
+    if (imageData) {
+      imageData.data.set(data)
+      if (context) {
+        context.putImageData(imageData, 0, 0)
+      }
+    }
 
     this.gl.deleteTexture(compTexture)
     this.gl.deleteFramebuffer(compFrameBuffer)
@@ -1260,7 +1358,7 @@ export default class Renderer {
     return canvas.toDataURL()
   }
 
-  warpBufferToDataURL() {
+  warpBufferToDataURL(): string {
     const data = new Uint8Array(this.texsizeX * this.texsizeY * 4)
 
     this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.targetFrameBuffer)
@@ -1279,9 +1377,14 @@ export default class Renderer {
     canvas.height = this.texsizeY
 
     const context = canvas.getContext('2d', { willReadFrequently: false })
-    const imageData = context.createImageData(this.texsizeX, this.texsizeY)
-    imageData.data.set(data)
-    context.putImageData(imageData, 0, 0)
+    const imageData = context?.createImageData(this.texsizeX, this.texsizeY)
+
+    if (imageData) {
+      imageData.data.set(data)
+      if (context) {
+        context.putImageData(imageData, 0, 0)
+      }
+    }
 
     return canvas.toDataURL()
   }
